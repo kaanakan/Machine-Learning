@@ -24,7 +24,7 @@ p = zeros(size(X, 1), 1);
 a1 = [ones(m,1), X] % input with biases
 
 z2 = a1 * Theta1';
-a2 = sigmod(z2);
+a2 = sigmoid(z2);
 layer2_size = size(a2,1);
 a2 = [ones(layer2_size, 1), a2];
 

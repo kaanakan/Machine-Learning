@@ -62,47 +62,32 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
-a_1 = [ones(m,1) X]; %adding bias
-a_2 = sigmoid(a1 * Theta1');
-a_2 = [ones(m,1) a2]; %adding bias
-a_3 = sigmoid(a2 * Theta2');
+a_1 = [ones(m,1) X];
+z_2 = (a_1*Theta1');
+a_2 = [ones(size(z_2,1),1) sigmoid(z_2)];
+a_3 = sigmoid(a_2*Theta2');
+y_matrix = eye(num_labels)(y,:);
+J = 1./m * (-sum(sum(y_matrix.*log(a_3))) - sum(sum((1-y_matrix).*(log(1-a_3)))));
 
-y_1 = repmat([1:num_labels], m, 1);
-act_y = repmat(y, 1, num_labels);
+% REGULARIZATION
+regularization_term = (lambda/(2*m))*((sum(sum(Theta1(:,2:end).^2))) + sum(sum(Theta2(:,2:end).^2)));
+J = J + regularization_term;
 
-y = y_1 == act_y;
+% BACK PROPOGATION
+d_3 = a_3 - y_matrix;                                             % has same dimensions as a_3
+d_2 = (d_3*Theta2).*[ones(size(z_2,1),1) sigmoidGradient(z_2)];     % has same dimensions as a_2
 
+D1 = d_2(:,2:end)' * a_1;    % has same dimensions as Theta1
+D2 = d_3' * a_2;    % has same dimensions as Theta2
 
-J = (-1 / m) * sum(sum(y .* log(a3) + (1 - y) .* log(1 - a3)));
-
-reg_Theta1 =  Theta1(:,2:end);
-reg_Theta2 =  Theta2(:,2:end);
-
-regularization = (lambda / (2 * m)) * (sum(sum(reg_Theta1.^2)) + sum(sum(reg_Theta2.^2)));
-
-J = J + regularization;
-
-D1 = zeros(size(Theta1));
-D2 = zeros(size(Theta2));
-
-for j = 1:m
-	a_1d = a1(t, :);
-	a_2d = a2(t, :);
-	a_3d = a3(t, :);
-	y_d = y(t,:);
-	d3 = a_3d - y_d; % error in last layer
-	d2 = Theta2' * d3 .*sigmoidGradient([1; Theta1 * a_1d]);
-	D1 = D1 + d2(2:end) * a_1d;
-	D2 = D2 + d3' * a_2d;
-end
+Theta1_grad = Theta1_grad + (1/m) * D1;
+Theta2_grad = Theta2_grad + (1/m) * D2;
 
 
-Theta1_grad = 1/m * D1 + (lamda/m) * [zeros(size(Theta1, 1), 1) reg_Theta1];
-Theta2_grad = 1/m * D2 + (lamda/m) * [zeros(size(Theta2, 1), 1) reg_Theta2];
+% REGULARIZATION OF THE GRADIENT
 
-
-
-
+Theta1_grad(:,2:end) = Theta1_grad(:,2:end) + (lambda/m)*(Theta1(:,2:end));
+Theta2_grad(:,2:end) = Theta2_grad(:,2:end) + (lambda/m)*(Theta2(:,2:end));
 
 % -------------------------------------------------------------
 
